@@ -1,0 +1,22 @@
+{
+    "name": "webrtc2",
+    "version": "2.0.0",
+    "description": "webrtc example",
+    "main": "index.js",
+    "scripts": {
+        "dev": "nodemon --inspect --exec babel-node index.js"
+    },
+    "dependencies": {
+        "socket.io": "^2.0.4",
+        "express": "^4.16.2"
+    },
+    "devDependencies": {
+        "babel-cli": "^6.26.0",
+        "babel-plugin-transform-object-rest-spread": "^6.26.0",
+        "babel-preset-env": "^1.6.1",
+        "eslint": "^4.9.0",
+        "eslint-config-airbnb-base": "^12.1.0",
+        "eslint-plugin-import": "^2.7.0",
+        "nodemon": "^1.12.5"
+    }
+}
