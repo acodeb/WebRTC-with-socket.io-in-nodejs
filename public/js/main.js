@@ -57,51 +57,75 @@ socket.on('message', function(evt) {
   }
 });
 
-// get the local stream, show it in the local video element and send it
-navigator.mediaDevices.getUserMedia({
-  audio: false,
-  video: true
-}).then(function(stream) {
-  console.log('Inside gotStream');
-  selfView.srcObject = stream;
-  localStream = stream;
-}).catch(function(err) {
-  console.log('Error getting User Media: ' + err);
+socket.on('hangup', function() {
+  hangupRoom(null);
 });
 
+// get the local stream, show it in the local video element and send it
+function getMedia(){
+  return new Promise(function(resolve, reject) {
+    navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: true
+    }).then(function(stream) {
+      console.log('Inside getMedia');
+      selfView.srcObject = stream;
+      localStream = stream;
+      resolve();
+    }).catch(function(err) {
+      console.log('Error getting User Media: ' + err.toString());
+      reject();
+    });
+  });
+}
+
 function startRoom(event) {
-  start();
-  socket.emit('create or join', roomid.value);
+  start().then(function() {
+    socket.emit('create or join', roomid.value);
+  }).catch(function(err) {
+    console.log('Error starting room: ' + err.toString());
+  });
 }
 
 function joinRoom(event) {
-  start()
-  socket.emit('create or join', roomid.value);
+  start().then(function() {
+    socket.emit('create or join', roomid.value);
+  }).catch(function(err) {
+    console.log('Error joining room: ' + err);
+  });
 }
 
 function hangupRoom(event) {
-  pc.close()
+  remoteStream = null;
+  remoteView.srcObject = null;
+
+  localStream.getTracks().forEach(function(track) {
+    track.stop();
+  });
+  selfView.srcObject = null;
+  if (pc) {
+    pc.close();
+    socket.emit('hangup', roomid.value);
+  }
   pc = null;
 }
 
 function start() {
-  pc = new RTCPeerConnection();
-
-  // send and ice candidate to the other peer
-  pc.onicecandidate = handleIceCandidate;
-  pc.ontrack = handleRemoteStreamAdded;
-  pc.onremovestream = handleRemoteStreamRemoved;
-  pc.addStream(localStream);
-
-  // once remote stream arrive, show it in the remote video element
-  pc.onaddstream = function(event) {
-    remoteView.srcObject = event.stream;
-    remoteStream = event.stream;
-  };
-
-  pc.onremovestream = function(event) {
-    console.log('Remote stream removed. Event: ', event);
-  };
+  return new Promise(function(resolve, reject) {
+    getMedia().then(function() {
+      pc = new RTCPeerConnection();
+      // send and ice candidate to the other peer
+      pc.onicecandidate = handleIceCandidate;
+      pc.ontrack = handleRemoteStreamAdded;
+      pc.onaddstream = handleRemoteStreamAdded;
+      pc.onremovestream = handleRemoteStreamRemoved;
+      pc.addStream(localStream);
+      resolve();
+    }).catch(function(err) {
+      console.log('Error getting User Media: ' + JSON.stringify(err));
+      reject();
+    });
+  });
 }
 
 function handleIceCandidate(event) {
@@ -120,8 +144,10 @@ function handleIceCandidate(event) {
 
 function handleRemoteStreamAdded(event) {
   console.log('Remote stream added.');
-  remoteView.srcObject = event.stream;
-  remoteStream = event.stream;
+  if (event.stream) {
+    remoteView.srcObject = event.stream;
+    remoteStream = event.stream;
+  }
 }
 
 function handleRemoteStreamRemoved(event) {

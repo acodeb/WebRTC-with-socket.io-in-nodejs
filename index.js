@@ -9,10 +9,7 @@ httpServer.listen(3000, () => {
   console.log(`${app.name} listening to 3000`);
 });
 
-const peerData = {};
-
 const io = socketio(httpServer);
-
 
 app.use(express.static('public'));
 
@@ -43,5 +40,15 @@ io.on('connection', (socket) => {
   socket.on('message', (room, data) => {
     console.log('Inside MESSAGE');
     socket.to(room).emit('message', data);
+  });
+
+  socket.on('hangup', (room) => {
+    console.log('Inside hangup');
+    socket.to(room).emit('hangup');
+    socket.leave(room);
+
+    var clientInRoom = io.sockets.adapter.rooms[room];
+    var numClients = clientInRoom ? Object.keys(clientInRoom.sockets).length : 0;
+    console.log(`Room ${room} has ${numClients + 1} client(s)`);
   });
 });

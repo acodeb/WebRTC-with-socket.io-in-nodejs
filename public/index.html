@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>WebRTC</title>
+    <link rel="stylesheet" type="text/css" href="#">
     <meta charset="utf-8" />
     <style type="text/css">
         body {
@@ -14,9 +15,6 @@
     </style>
 </head>
 <body>
-    <script type="text/javascript" src="js/adapter-latest.js"></script>
-    <script type="text/javascript" src="socket.io/socket.io.js"></script>
-
     <div>
         <h2><label id="yourid">Create or Join Room: </label></h2><input type="text" id="roomid">
         <button id="startbtn">Start</button>
@@ -37,6 +35,8 @@
         <h2>Remote Video</h2>
         <video id="video2" autoplay></video>
     </div>
+    <script type="text/javascript" src="js/adapter-latest.js"></script>
+    <script type="text/javascript" src="socket.io/socket.io.js"></script>
     <script type="text/javascript" src="js/main.js"></script>
 </body>
 </html>
